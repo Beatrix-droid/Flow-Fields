@@ -22,16 +22,20 @@ class Particle{
         this.maxLength=Math.floor(Math.random()*200)+200; //create length of line
         this.angle=0;
         this.timer=this.maxLength*2;
+        this.colours=["#46c7e0","#20e655","#acb507","#25083d","#9c1017"];
+        this.colour=this.colours[Math.floor(Math.random() * (this.colours.length))];
     }
 
     draw(context){
-        context.fillRect(this.x, this.y, 5,6);//size of particles
+        
+        context.fillRect(this.x, this.y, 2,2);//size of particles
         context.beginPath();
         context.moveTo(this.history[0].x,this.history[0].y);
 
         for(let i=0; i<this.history.length; i++){
             context.lineTo(this.history[i].x, this.history[i].y);
         }
+        context.strokeStyle=this.colour;
         context.stroke();
     }
 
@@ -65,7 +69,6 @@ class Particle{
         else{
             this.reset();
         }
-
     }
 
     // to reset the animation
@@ -75,8 +78,6 @@ class Particle{
         this.history=[{x:this.x, y:this.y}];
         this.timer=this.maxLength*2;
     }
-
-
 }
 
 
@@ -87,20 +88,21 @@ class Effect{
         this.width=this.canvas.width;
         this.height=this.canvas.height;
         this.particles=[];
-        this.numberOfParticles=200;
-        this.cellSize=30;
+        this.numberOfParticles=500;
+        this.cellSize=15;
         this.rows;
         this.cols;
         this.flowField=[];
-        this.curve=1.1;
-        this.zoom=0.4;
+        this.curve=5.1;
+        this.zoom=0.093;
         this.initialise();
-        this.debug=true;
+        this.debug=false;
+
+
         window.addEventListener("keydown", e=>{
             console.log(e);
             if(e.key==="d") {this.debug=!this.debug}; //toggle the debug mode off
         });
-    
     }
 
     // create the effect
