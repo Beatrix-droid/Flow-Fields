@@ -6,7 +6,7 @@ canvas.height=window.innerHeight;
 
 //canvas settings
 ctx.fillStyle="red";
-ctx.strokeStyle="red";
+ctx.strokeStyle="purple";
 ctx.lineWidth=1;
 
 
@@ -19,8 +19,9 @@ class Particle{
         this.y= Math.floor(Math.random()* this.effect.height);
     
         this.history=[{x:this.x, y:this.y}];
-        this.maxLenght=Math.floor(Math.random()*200 +10); //create lenght of line
+        this.maxLength=Math.floor(Math.random()*200)+200; //create length of line
         this.angle=0;
+        this.timer=this.maxLength*2;
     }
 
     draw(context){
@@ -40,20 +41,39 @@ class Particle{
     update(){
         //move them around
         // how many rows and cols we are from the top
-        let x = Math.floor(this.x /this.effect.cellSize);
-        let y = Math.floor(this.y /this.effect.cellSize);
-        // extract the angle
-        let index= y*this.effect.cols +x; //index of flow field array
-        this.angle=this.effect.flowField[index];
-        this.speedX=Math.cos(this.angle);
-        this.speedY=Math.sin(this.angle);
-        this.x += this.speedX;
-        this.y+= this.speedY;
-        //update history array
-        this.history.push({x: this.x, y:this.y});
-        if (this.history.length > this.maxLenght){
+        this.timer--;
+        if (this.timer>=1)
+            {            
+            let x = Math.floor(this.x /this.effect.cellSize);
+            let y = Math.floor(this.y /this.effect.cellSize);
+            // extract the angle
+            let index= y*this.effect.cols +x; //index of flow field array
+            this.angle=this.effect.flowField[index];
+            this.speedX=Math.cos(this.angle)-0.1;
+            this.speedY=Math.sin(this.angle)-0.1;
+            this.x += this.speedX;
+            this.y+= this.speedY;
+            //update history array
+            this.history.push({x: this.x, y:this.y});
+            if (this.history.length > this.maxLength){
+                this.history.shift();
+                }
+            }
+        else if(this.timer>1){
             this.history.shift();
         }
+        else{
+            this.reset();
+        }
+
+    }
+
+    // to reset the animation
+    reset(){
+        this.x=Math.floor(math.random()*this.effect.width);
+        this.y=Math.floor(math.random()*this.effect.height);
+        this.history=[{x:this.x, y:this.y}];
+        this.timer=this.maxLength*2;
     }
 
 
@@ -62,18 +82,25 @@ class Particle{
 
 // manages all particles at once
 class Effect{   
-    constructor(width, height){
-        this.width=width;
-        this.height=height;
+    constructor(canvas){
+        this.canvas=canvas
+        this.width=this.canvas.width;
+        this.height=this.canvas.height;
         this.particles=[];
-        this.numberOfParticles=300;
-        this.cellSize=20;
+        this.numberOfParticles=200;
+        this.cellSize=30;
         this.rows;
         this.cols;
         this.flowField=[];
-        this.curve=0.5;
-        this.zoom=0.2;
+        this.curve=1.1;
+        this.zoom=0.4;
         this.initialise();
+        this.debug=true;
+        window.addEventListener("keydown", e=>{
+            console.log(e);
+            if(e.key==="d") {this.debug=!this.debug}; //toggle the debug mode off
+        });
+    
     }
 
     // create the effect
@@ -98,8 +125,42 @@ class Effect{
         this.particles.push(new Particle(this))}//will trigger the creation of a new particle
     }
 
+    resize(width, height){
+        this.canvas.width=width;
+        this.canvas.height=height;
+        this.width=this.canvas.width;
+        this.height=this.canvas.height;
+    }
+
+
+    drawGrid(context){
+
+        //wrap between save and restore to ensure that any changes we made in this context do not apply globally (so we just get to change the colour of the grid without affecting the flow field)
+        context.save();
+        context.strokeStyle="yellow";
+        context.lineWidth=0.2;
+        for (let c=0; c<this.cols; c++){
+            context.beginPath();
+            //move along the width of canvas
+            context.moveTo(this.cellSize *c, 0) 
+            //draw the line from the top to the very bottom
+            context.lineTo(this.cellSize*c, this.height);
+            context.stroke();
+        }
+        for (let r=0; r<this.rows; r++){
+            context.beginPath();
+            //move along the width of canvas
+            context.moveTo(0, this.cellSize *r) 
+            //draw the line from the top to the very bottom
+            context.lineTo( this.width,this.cellSize*r,);
+            context.stroke();
+        }
+        context.restore();
+    }
     // draw the effect on the canvas
     render(context){
+        if (this.debug){
+        this.drawGrid(context);}
         this.particles.forEach(particle=>{
             particle.draw(context);
             particle.update();
@@ -108,7 +169,7 @@ class Effect{
 }
 
 
-const effect = new Effect(canvas.width, canvas.height);
+const effect = new Effect(canvas);
 effect.initialise();
 console.log(effect);
 
