@@ -94,7 +94,7 @@ class Effect{
         this.cols;
         this.flowField=[];
         this.curve=5.1;
-        this.zoom=0.093;
+        this.zoom=0.18;
         this.initialise();
         this.debug=false;
 
